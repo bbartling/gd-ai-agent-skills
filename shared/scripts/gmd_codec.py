@@ -22,6 +22,45 @@ CANONICAL_PREFIX = b'<?xml version="1.0"?><plist version="1.0" gjver="2.0"><dict
 CANONICAL_SUFFIX = b"</dict></plist>"
 
 
+def base64_contract(encoded: str) -> list[str]:
+    """Return fatal errors for the corpus-proven k4 Base64 representation.
+
+    Python's URL-safe decoder accepts repaired padding. Geometry Dash did not
+    accept three generated files whose required trailing ``=`` was stripped.
+    Validation must therefore inspect the serialized value before decoding it.
+    """
+    errors: list[str] = []
+    try:
+        raw = encoded.encode("ascii")
+    except UnicodeEncodeError:
+        return ["Base64 value is not ASCII"]
+    if not raw:
+        return ["Base64 value is empty"]
+    if len(raw) % 4:
+        errors.append(
+            f"Base64 length {len(raw)} is not divisible by 4; required padding was stripped"
+        )
+    padding = len(raw) - len(raw.rstrip(b"="))
+    if padding > 2:
+        errors.append(f"Base64 has {padding} trailing padding characters; at most 2 are valid")
+    body = raw[:-padding] if padding else raw
+    if b"=" in body:
+        errors.append("Base64 padding appears before the end of the value")
+    allowed = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+    invalid = sorted(set(body) - set(allowed))
+    if invalid:
+        errors.append(f"Base64 contains invalid URL-safe bytes: {invalid}")
+    if errors:
+        return errors
+    try:
+        decoded = base64.b64decode(raw, altchars=b"-_", validate=True)
+    except (ValueError, base64.binascii.Error) as exc:
+        return [f"Base64 decode failed: {exc}"]
+    if base64.urlsafe_b64encode(decoded) != raw:
+        errors.append("Base64 is not in canonical padded URL-safe form")
+    return errors
+
+
 def pairs(path: Path):
     root = ET.parse(path).getroot()
     node = root.find("dict")
@@ -102,13 +141,30 @@ def replace_existing_value(raw: bytes, key: str, value: str,
 
 
 def decode(encoded: str) -> str:
-    padded = encoded + "=" * ((4 - len(encoded) % 4) % 4)
-    return gzip.decompress(base64.urlsafe_b64decode(padded)).decode("utf-8")
+    errors = base64_contract(encoded)
+    if errors:
+        raise ValueError("; ".join(errors))
+    compressed = base64.b64decode(encoded.encode("ascii"), altchars=b"-_", validate=True)
+    return gzip.decompress(compressed).decode("utf-8")
+
+
+def repair_missing_padding(encoded: str) -> str:
+    """Repair only missing terminal padding after proving gzip/UTF-8 integrity."""
+    if "=" in encoded:
+        raise ValueError("repair accepts only an unpadded Base64 value")
+    missing = (-len(encoded)) % 4
+    if missing not in (1, 2):
+        raise ValueError("value does not have a repairable Base64 padding deficit")
+    repaired = encoded + "=" * missing
+    # Strict decode verifies alphabet, canonical representation, gzip CRC and UTF-8.
+    decode(repaired)
+    return repaired
 
 
 def encode(level: str) -> str:
     compressed = gzip.compress(level.encode("utf-8"), compresslevel=9, mtime=0)
-    return base64.urlsafe_b64encode(compressed).decode("ascii").rstrip("=")
+    # Keep RFC 4648 padding. Every supplied working export has len(k4) % 4 == 0.
+    return base64.urlsafe_b64encode(compressed).decode("ascii")
 
 
 def object_count(level: str) -> int:
@@ -145,6 +201,10 @@ def main() -> int:
     clone_parser.add_argument("--name", required=True)
     inspect_parser = sub.add_parser("inspect-wrapper")
     inspect_parser.add_argument("gmd")
+    repair_parser = sub.add_parser("repair-padding")
+    repair_parser.add_argument("source")
+    repair_parser.add_argument("output")
+    repair_parser.add_argument("--name")
     args = parser.parse_args()
 
     if args.cmd == "decode":
@@ -158,9 +218,26 @@ def main() -> int:
         level = Path(args.level_string).read_text(encoding="utf-8")
         raw = encode_into_template(Path(args.template), level, name=args.name)
         Path(args.output).write_bytes(raw)
+    elif args.cmd == "repair-padding":
+        source = Path(args.source)
+        tag, encoded = get_typed_value(source, "k4")
+        if tag != "s":
+            raise ValueError(f"k4 uses <{tag}> instead of <s>")
+        repaired = repair_missing_padding(encoded)
+        raw = replace_existing_value(source.read_bytes(), "k4", repaired, "s")
+        if args.name is not None:
+            raw = replace_existing_value(raw, "k2", args.name, "s")
+        Path(args.output).write_bytes(raw)
     else:
         path = Path(args.gmd)
         errors, warnings = wrapper_contract(path.read_bytes())
+        try:
+            _, encoded = get_typed_value(path, "k4")
+            errors.extend(base64_contract(encoded))
+            if not errors:
+                decode(encoded)
+        except (ET.ParseError, KeyError, ValueError, OSError, UnicodeError) as exc:
+            errors.append(f"k4 parse/decode failed: {exc}")
         print(f"file={path.name}")
         print(f"known_good_wrapper={str(not errors).lower()}")
         for item in errors:

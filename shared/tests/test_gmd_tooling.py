@@ -11,8 +11,10 @@ from pathlib import Path
 SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
-from gmd_codec import (CANONICAL_PREFIX, decode, encode, encode_into_template,
+from gmd_codec import (CANONICAL_PREFIX, base64_contract, decode, encode,
+                       encode_into_template, repair_missing_padding,
                        replace_existing_value, wrapper_contract)
+from make_three_spike_canary import build as build_three_spike_canary
 
 
 LEVEL = "kS38,1_40_2_125_3_255,kA11,0;1,1,2,348.778,3,16.1111,155,1;"
@@ -71,6 +73,48 @@ class GMDToolingTests(unittest.TestCase):
 
     def test_payload_roundtrip_is_semantically_exact(self):
         self.assertEqual(decode(encode(LEVEL)), LEVEL)
+
+    def test_encoder_keeps_canonical_padding(self):
+        encoded = encode(LEVEL)
+        self.assertEqual(len(encoded) % 4, 0)
+        self.assertEqual(base64_contract(encoded), [])
+
+    def test_stripped_required_padding_is_fatal(self):
+        encoded = encode(LEVEL)
+        candidate = encoded.rstrip("=")
+        if candidate == encoded:
+            candidate = encode(LEVEL + "1,1,2,30,3,30;").rstrip("=")
+        self.assertNotEqual(len(candidate) % 4, 0)
+        errors = base64_contract(candidate)
+        self.assertTrue(any("not divisible by 4" in item for item in errors))
+        with self.assertRaisesRegex(ValueError, "padding was stripped"):
+            decode(candidate)
+
+    def test_explicit_padding_repair_proves_payload(self):
+        encoded = encode(LEVEL)
+        unpadded = encoded.rstrip("=")
+        if unpadded == encoded:
+            encoded = encode(LEVEL + "1,1,2,30,3,30;")
+            unpadded = encoded.rstrip("=")
+        repaired = repair_missing_padding(unpadded)
+        self.assertEqual(repaired, encoded)
+        self.assertTrue(decode(repaired).startswith("kS38,"))
+
+    def test_three_spike_canary_preserves_source_and_requires_padding(self):
+        with tempfile.TemporaryDirectory() as directory:
+            template = Path(directory) / "OneBlockTest.gmd"
+            template.write_bytes(wrapper())
+            raw, _ = build_three_spike_canary(template, "CANARY")
+            candidate = Path(directory) / "canary.gmd"
+            candidate.write_bytes(raw)
+            _, encoded = __import__("gmd_codec").get_typed_value(candidate, "k4")
+            level = decode(encoded)
+        records = [record for record in level.split(";")[1:] if record]
+        self.assertEqual(len(records), 4)
+        self.assertEqual(records[0], LEVEL.split(";")[1])
+        self.assertTrue(all(record.startswith("1,8,") for record in records[1:]))
+        self.assertTrue(encoded.endswith("="))
+        self.assertEqual(base64_contract(encoded), [])
 
 
 if __name__ == "__main__":

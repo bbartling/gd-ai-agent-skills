@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "known_good": [
+    {"file": "Abducted_FAMOUS_ANIMATIONS.gmd", "sha256": "b2ed6e6db01a1ec98c38a179101b750ac9005a048c7e5c31544a98026afbbd06", "objects": 78106, "k4_padding_chars": 2},
+    {"file": "BACKFIRE BLACKFIRE_FAMOUS_ANIMATIONS", "sha256": "7691301d53728c8c9249b55f605071d9955c5b41da8d608f7abbb46ad0b65985", "objects": 195545, "k4_padding_chars": 1},
+    {"file": "GD GANGSTER RAP_FAMOUS_ANIMATIONS.gmd", "sha256": "4a2f316fc5416804cb515b227e7005142f8b9ffda02844e243c8dc8bd90572a5", "objects": 148992, "k4_padding_chars": 2},
+    {"file": "MOAI_FAMOUS_ANIMATIONS.gmd", "sha256": "31b6e12b8cd1ca1e504211f0294468b0b52f553c38662487c70276e0571b445c", "objects": 117272, "k4_padding_chars": 1},
+    {"file": "Skeletal Shenanigans_FAMOUS_ANIMATIONS.gmd", "sha256": "62eaf03b59fbcf23dc44364d7679a1649d73659be67ebd905b92582c13153a1b", "objects": 80495, "k4_padding_chars": 2},
+    {"file": "Slaughterhouse_FAMOUS_ANIMATIONS .gmd", "sha256": "e5e9ef67fa0e86e85d9eb94c73cafeb2f1202deafdb21e979b38e27a231322f7", "objects": 147241, "k4_padding_chars": 1},
+    {"file": "Trouble_HARD", "sha256": "7729ed5e0471ba717895daa9cbd642098117a216f2859893af3f517f70ca76d8", "objects": 12093, "k4_padding_chars": 2},
+    {"file": "impossible timing_HARDER", "sha256": "711fd1c744e6999797d78afd13bdebf4c760908105804dc53f5e00300d6e6d2c", "objects": 127, "k4_padding_chars": 0},
+    {"file": "wallbreaker_HARDER", "sha256": "b9c31376c66f76fe9c03c679addd984238a4c934e6783580fc16d15ebdfd1048", "objects": 22555, "k4_padding_chars": 0},
+    {"file": "wave PROCESSING_EASY", "sha256": "2903ebd8edb6397db31bd6bb70b7d03c1248116b3cfe9877d788224dfd036826", "objects": 282, "k4_padding_chars": 2},
+    {"file": "world is blue_NORMAL", "sha256": "8c702140d35bdaa38a137f4bb236d76908c77d990f9c0a3f4dd93d4422b920ca", "objects": 51015, "k4_padding_chars": 0},
+    {"file": "OneBlockTest.gmd", "sha256": "8c8d4349a0b5bf32369c0256674232360b6a900278aa6ff944490a38e28ce194", "objects": 1, "k4_padding_chars": 0},
+    {"file": "rocket power.gmd", "sha256": "613bcf8f7e802bb69e8f82c1748eedc3d4e398c90cfd03f10f68a84d72becffe", "objects": 1143, "k4_padding_chars": 2}
+  ],
+  "known_bad": [
+    {"file": "CHEESE_MOON_ODYSSEY_CANDIDATE.gmd", "sha256": "59ac5227ac7561478a701bccc3eebfff190260547b435199e3159598d2d897bf", "expected_error": "padding was stripped", "k4_length_mod4": 3},
+    {"file": "CHEESE_MOON_ODYSSEY_V2_CANDIDATE.gmd", "sha256": "454a7c4d42f0fb438a7483f335de6aae7ccf3ed8759eb8cd5e6498f2003af91c", "expected_error": "padding was stripped", "k4_length_mod4": 3},
+    {"file": "CHEESE_MOON_ODYSSEY_V3.gmd", "sha256": "1e4a9a34b0998b53ff4be1323131ac41d5f986cf044e99bab6ddfeacfc596ffc", "expected_error": "padding was stripped", "k4_length_mod4": 3}
+  ]
+}

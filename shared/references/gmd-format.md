@@ -22,9 +22,9 @@ The wrapper's bytes are compatibility-relevant. All 11 supplied human reference 
 <?xml version="1.0"?><plist version="1.0" gjver="2.0"><dict>
 ```
 
-Two rejected generated candidates instead had an `encoding='utf-8'` declaration and a newline introduced by generic XML serialization. Valid XML is therefore not sufficient evidence. Preserve the template's declaration, whitespace, key order, value tags, unknown values, and closing bytes. Replace the text of existing scalar fields in the raw template; do not serialize the parsed tree. See `serialization-integrity.md`.
+Two rejected generated candidates also had an `encoding='utf-8'` declaration and a newline introduced by generic XML serialization. Preserve the template's declaration, whitespace, key order, value tags, unknown values, and closing bytes because those mutations are unnecessary compatibility risks. Later testing proved that the defect shared by all three rejected builds was stripped `k4` Base64 padding, not the XML declaration alone. See `serialization-integrity.md`.
 
-`k4` decoding is: add Base64 padding if absent → URL-safe Base64 decode → gzip decompress → UTF-8 text. Encoding reverses that process. The bundled codec uses deterministic gzip timestamps for stable output; Geometry Dash may normalize the export later.
+`k4` decoding is: require canonical padded URL-safe Base64 exactly as serialized → decode → gzip decompress with CRC verification → UTF-8 text. Do not add missing padding during ordinary validation. Encoding reverses that process and retains the Base64 encoder's terminal `=` characters. The bundled codec uses deterministic gzip timestamps for stable output; Geometry Dash may normalize the export later.
 
 ## Inner level string
 
@@ -52,7 +52,7 @@ Avoid generic XML/plist writers, even if they can read `<k>` tags: they may chan
 
 ## Empty-level fallback
 
-GDShare can accept enough metadata to create an entry while the level opens as a plain/empty editor. A successful plist parse and gzip round trip therefore do not prove editor compatibility. Check the serialized wrapper first, then malformed header edits, invalid enum values, unsupported object/property combinations, count/capacity boundaries, and transformations that changed unknown source records.
+GDShare can accept enough metadata to create an entry while the level opens as a plain/empty editor. A successful plist parse and permissive gzip round trip therefore do not prove editor compatibility. Check the serialized `k4` length/padding/alphabet first, then the wrapper, malformed header edits, invalid enum values, unsupported object/property combinations, count/capacity boundaries, and transformations that changed unknown source records.
 
 Start from the last importable export and build an import ladder. Keep the header unchanged for the first extension, preserve source records exactly, add one donor-derived object/system at a time, and test import/open/save/re-export before increasing density. Use `../scripts/audit_gmd_compatibility.py` to enforce the conservative invariants when GD testing is temporarily unavailable.
 

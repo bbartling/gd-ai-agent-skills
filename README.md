@@ -49,6 +49,7 @@ Shared resources provide:
 - build briefs, section cards, group/rig ledgers, boss cards, playtest logs, and release scorecards;
 - structural analysis, codec, comparison, and validation scripts;
 - lossless wrapper splicing, known-good corpus audits, and fail-closed release gates;
+- canonical padded Base64 enforcement, known-bad rejection tests, and a minimal three-spike import canary;
 - corpus-derived measurements and adversarial behavior tests.
 
 The reference Geometry Dash levels used during analysis are not redistributed in this repository.
@@ -97,10 +98,17 @@ python3 shared/scripts/gate_gmd_release.py candidate.gmd \
   --container-template known-working-local.gmd \
   --content-baseline original.gmd --max-objects 65535
 python3 shared/scripts/gmd_codec.py decode level.gmd level-string.txt
+python3 shared/scripts/run_gmd_regression_gate.py \
+  --candidate candidate.gmd \
+  --container-template known-working-local.gmd \
+  --content-baseline original.gmd \
+  --known-good references/ known-working-local.gmd original.gmd \
+  --known-bad rejected-v1.gmd rejected-v2.gmd rejected-v3.gmd \
+  --manifest shared/evidence/regression-corpus-manifest.json
 python3 -m unittest discover -s shared/tests -p 'test_*.py'
 ```
 
-The encoder modifies the proven template's raw bytes instead of reserializing its XML tree. This is deliberate: every supplied human export used the same compact, single-line wrapper, while generic XML serialization changed the declaration/whitespace in two candidates that opened blank. Read [`serialization-integrity.md`](shared/references/serialization-integrity.md). These scripts require Python 3 and use the standard library. They validate structure and help detect regressions; they do not simulate Geometry Dash physics or runtime triggers.
+The encoder modifies the proven template's raw bytes instead of reserializing its XML tree and retains canonical Base64 padding. This is deliberate: the old encoder stripped terminal `=` while the old decoder silently restored it, causing all three Cheese Moon candidates to pass locally and open blank in Geometry Dash. All 13 supplied working exports had `len(k4) % 4 == 0`, all three rejected builds failed that invariant, and a corrected one-block/three-spike canary imported successfully. Read [`serialization-integrity.md`](shared/references/serialization-integrity.md). These scripts require Python 3 and use the standard library. They validate structure and help detect regressions; they do not simulate Geometry Dash physics or runtime triggers.
 
 ## Contributing
 

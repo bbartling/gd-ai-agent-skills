@@ -7,15 +7,15 @@ Dash evolves, so silently discarding unknown keys is unsafe.
 from __future__ import annotations
 
 import argparse
-import base64
 import csv
-import gzip
 import json
 import math
 import statistics
 import xml.etree.ElementTree as ET
 from collections import Counter, defaultdict
 from pathlib import Path
+
+from gmd_codec import decode
 
 TRIGGERS = {
     899: "color", 901: "move", 1006: "pulse", 1007: "alpha",
@@ -79,8 +79,7 @@ def plist_pairs(path: Path) -> dict[str, str]:
 
 
 def decode_level(encoded: str) -> str:
-    padded = encoded + "=" * ((4 - len(encoded) % 4) % 4)
-    return gzip.decompress(base64.urlsafe_b64decode(padded)).decode("utf-8")
+    return decode(encoded)
 
 
 def parse_object(chunk: str) -> dict[int, str]:

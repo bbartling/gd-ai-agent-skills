@@ -31,13 +31,20 @@ python3 ../shared/scripts/audit_gmd_compatibility.py baseline.gmd candidate.gmd 
 python3 ../shared/scripts/gate_gmd_release.py candidate.gmd \
   --container-template known-working-local.gmd \
   --content-baseline baseline.gmd --max-objects 65535
+python3 ../shared/scripts/run_gmd_regression_gate.py \
+  --candidate candidate.gmd \
+  --container-template known-working-local.gmd \
+  --content-baseline baseline.gmd \
+  --known-good references/ known-working-local.gmd baseline.gmd \
+  --known-bad rejected-v1.gmd rejected-v2.gmd rejected-v3.gmd \
+  --manifest ../shared/evidence/regression-corpus-manifest.json
 ```
 
 Then import into Geometry Dash under a new name. Inspect beginning/end, every portal and speed change, groups, editor layers, high-detail objects, hidden helpers, song offset, and start positions. Test from zero, from each section boundary, after death/restart, and after practice checkpoints. Verify normal and low-detail configurations if provided.
 
 Reject release for structural errors, missing/unintended geometry, impossible or blind transitions outside target intent, persistent trigger state after restart, uncontrolled loops, unreadable hazards, major frame drops, or an unverified full run. Warnings about target groups can be legitimate; resolve them by tracing dynamic trigger groups rather than deleting them automatically. A `k48=65535` warning on a larger decoded level may be a version-specific count cap; compare against a known target-version export and require an import/save/re-export instead of silently changing it.
 
-If the imported level opens as plain/empty, record that as **wrapper/payload rejected** even if the file appears in My Levels. Do not attempt to repair gameplay inside that artifact. Before inspecting gameplay, compare the raw XML declaration, BOM/newlines, outer key/tag order, local-vs-online identity, template metadata, and `k34`. Then use a compatibility ladder: unchanged byte-preserving source clone → renamed source → source plus one donor object → one new system → representative section → full build → optional density. Import/open/save/re-export each rung and binary-search the first failing addition.
+If the imported level opens as plain/empty, record that as **wrapper/payload rejected** even if the file appears in My Levels. Do not attempt to repair gameplay inside that artifact. Before inspecting gameplay, require canonical serialized `k4` Base64 without automatic padding repair; then compare the XML declaration, BOM/newlines, outer key/tag order, local-vs-online identity, template metadata, and `k34`. Use a compatibility ladder: unchanged byte-preserving source clone → renamed source → source plus one donor object → one new system → representative section → full build → optional density. Import/open/save/re-export each rung and binary-search the first failing addition.
 
 Also reject inflated difficulty claims. Compare the requested tier with actual mode-specific demands, sustained input density, transition complexity, clear rates, and fresh-player feedback. Object count, spike count, visual noise, and level name are not difficulty evidence.
 

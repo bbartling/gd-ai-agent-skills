@@ -93,7 +93,7 @@ It does **not** execute triggers or simulate the game. It cannot prove opacity, 
 
 ## 9. Plain/empty import recovery
 
-If GDShare imports the file entry but Geometry Dash opens a blank or default-looking level, the serialized wrapper or level string has failed the only compatibility test that matters. Do not infer that the level merely needs more objects. First compare the exact XML prologue, BOM/newlines, outer key/tag order, local/online identity, `k34`, and unknown template metadata. Return to the last importable file and isolate the first failing change with an import ladder.
+If GDShare imports the file entry but Geometry Dash opens a blank or default-looking level, the serialized payload or wrapper has failed the only compatibility test that matters. Do not infer that the level merely needs more objects. First require canonical `k4` Base64 length and terminal padding without silently repairing it; then compare the XML prologue, BOM/newlines, outer key/tag order, local/online identity, `k34`, and unknown template metadata. Return to the last importable file and isolate the first failing change with an import ladder.
 
 For a conservative recovery build when GD is not locally available:
 

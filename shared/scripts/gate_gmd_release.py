@@ -16,17 +16,9 @@ def records(path: Path) -> tuple[str, list[str]]:
     return chunks[0], [record for record in chunks[1:] if record]
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("candidate")
-    parser.add_argument("--container-template", required=True)
-    parser.add_argument("--content-baseline")
-    parser.add_argument("--max-objects", type=int, default=65535)
-    parser.add_argument("--json")
-    args = parser.parse_args()
-
-    candidate = Path(args.candidate)
-    template = Path(args.container_template)
+def release_gate(candidate: Path, template: Path, *,
+                 content_baseline: Path | None = None,
+                 max_objects: int = 65535) -> dict:
     base = audit(candidate)
     errors, warnings = list(base["errors"]), list(base["warnings"])
 
@@ -49,28 +41,41 @@ def main() -> int:
         errors.append("candidate reintroduced an online level ID into a local template")
     local_identity = "k1" not in candidate_map
 
-    candidate_header, candidate_records = records(candidate)
-    if len(candidate_records) > args.max_objects:
-        errors.append(f"decoded count {len(candidate_records)} exceeds {args.max_objects}")
+    payload_available = True
+    try:
+        candidate_header, candidate_records = records(candidate)
+    except (KeyError, ValueError, OSError, UnicodeError) as exc:
+        payload_available = False
+        candidate_header, candidate_records = "", []
+        errors.append(f"candidate payload unavailable to release gate: {exc}")
+    if len(candidate_records) > max_objects:
+        errors.append(f"decoded count {len(candidate_records)} exceeds {max_objects}")
     declared = candidate_map.get("k48")
     if declared != str(len(candidate_records)):
         errors.append(f"generated candidate requires exact k48; got {declared!r}")
 
     header_exact = None
     source_prefix_exact = None
-    if args.content_baseline:
-        baseline_header, baseline_records = records(Path(args.content_baseline))
-        header_exact = candidate_header == baseline_header
-        source_prefix_exact = candidate_records[:len(baseline_records)] == baseline_records
+    if content_baseline:
+        baseline_header, baseline_records = records(content_baseline)
+        header_exact = payload_available and candidate_header == baseline_header
+        source_prefix_exact = (
+            payload_available
+            and candidate_records[:len(baseline_records)] == baseline_records
+        )
         if not header_exact:
             errors.append("level header differs from the importable content baseline")
         if not source_prefix_exact:
             errors.append("importable baseline objects are not an exact candidate prefix")
 
-    report = {
+    return {
         "candidate": candidate.name,
         "passed": not errors,
         "known_good_wrapper": base["wrapper_exact"],
+        "canonical_padded_k4": base["k4_base64_canonical"],
+        "k4_length_mod4": base["k4_base64_length_mod4"],
+        "k4_padding_chars": base["k4_padding_chars"],
+        "k4_gzip_utf8_valid": base["k4_gzip_utf8_valid"],
         "outer_shape_exact": shape_exact,
         "template_metadata_unchanged": not unexpected,
         "local_identity": local_identity,
@@ -82,11 +87,28 @@ def main() -> int:
         "warnings": warnings,
         "evidence_limit": "PASS means statically release-gated, not imported, played, or verified in Geometry Dash.",
     }
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("candidate")
+    parser.add_argument("--container-template", required=True)
+    parser.add_argument("--content-baseline")
+    parser.add_argument("--max-objects", type=int, default=65535)
+    parser.add_argument("--json")
+    args = parser.parse_args()
+
+    report = release_gate(
+        Path(args.candidate),
+        Path(args.container_template),
+        content_baseline=Path(args.content_baseline) if args.content_baseline else None,
+        max_objects=args.max_objects,
+    )
     rendered = json.dumps(report, indent=2)
     if args.json:
         Path(args.json).write_text(rendered, encoding="utf-8")
     print(rendered)
-    return 1 if errors else 0
+    return 0 if report["passed"] else 1
 
 
 if __name__ == "__main__":

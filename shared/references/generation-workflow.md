@@ -27,7 +27,7 @@ Trace state into and out of each challenge. Repair blind transitions and acciden
 
 Decorate one representative section at full intended quality. Add its rigs, LDM, layers, and performance budget. Test readability/performance before propagating the visual language.
 
-Before propagation, make an import canary. The recommended ladder is: byte-identical same-value splice, renamed raw-splice clone, source plus one donor object, one complete new system, representative section, full functional build, then optional density. Import/open/save/re-export each rung. A plain/empty editor means the wrapper or level string was rejected; inspect byte-shape and template identity before bisecting additions.
+Before propagation, make an import canary. The recommended ladder is: byte-identical same-value splice, renamed raw-splice clone, source plus one donor object, one complete new system, representative section, full functional build, then optional density. Import/open/save/re-export each rung. A plain/empty editor means the payload or wrapper was rejected; inspect the serialized `k4` padding/alphabet/length before wrapper byte-shape and template identity, then bisect additions.
 
 ## Phase 6 — Production
 
@@ -37,7 +37,7 @@ For a large procedural extension, keep the original object records byte-for-byte
 
 ## Phase 7 — Packaging and validation
 
-Encode into a new `.gmd` by raw-splicing `k2`, `k4`, and exact `k48` into a proven local target-version template. Run `inspect-wrapper`, static validation, `gate_gmd_release.py`, `audit_gmd_compatibility.py`, and compare counts/systems. Import, open, save, re-export. Test all transitions, trigger lifecycles, normal/practice/LDM, performance, and full clears. Archive the build report with limitations.
+Encode into a new `.gmd` by raw-splicing `k2`, canonical padded `k4`, and exact `k48` into a proven local target-version template. Run `inspect-wrapper`, static validation, `gate_gmd_release.py`, `audit_gmd_compatibility.py`, the known-good/known-bad regression gate, and compare counts/systems. Import, open, save, re-export. Test all transitions, trigger lifecycles, normal/practice/LDM, performance, and full clears. Archive the build report with limitations.
 
 ## Refactor rules
 

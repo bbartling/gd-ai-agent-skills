@@ -39,7 +39,7 @@ A supposed demon with trivial inputs fails even if it looks polished. A dense an
 - Never hide uncertainty behind object counts, trigger counts, or words such as “extreme,” “epic,” “professional,” or “fully validated.”
 - If the user requests a target file size, treat it as a packaging budget—not a quality metric. Finish gameplay, art, and animation first; tune only optional high-detail density afterward.
 - A finale must complete the dramatic promise: readable arrival, viewport-scale destination or payoff, controlled reveal, recovery space, and a clear finish. A tiny prop plus text is not a destination scene.
-- If GD opens the candidate as a plain or empty level, stop all art/difficulty work. Treat it as rejection of the serialized wrapper or level string. Audit exact wrapper bytes and template identity before bisecting header changes, property enums, object systems, and density with import canaries. A generic XML serializer is forbidden for final `.gmd` output.
+- If GD opens the candidate as a plain or empty level, stop all art/difficulty work. Treat it as rejection of the serialized payload or wrapper. Audit canonical `k4` Base64 padding/alphabet/length before exact wrapper bytes and template identity, then bisect header changes, property enums, object systems, and density with import canaries. A generic XML serializer and stripped Base64 padding are forbidden for final `.gmd` output.
 
 ## Routing
 

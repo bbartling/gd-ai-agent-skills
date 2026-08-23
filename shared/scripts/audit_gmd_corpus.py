@@ -9,8 +9,8 @@ import math
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-from gmd_codec import (decode, encode, get_typed_value, replace_existing_value,
-                       typed_values, wrapper_contract)
+from gmd_codec import (base64_contract, decode, encode, get_typed_value,
+                       replace_existing_value, typed_values, wrapper_contract)
 
 
 def gather(items: list[str]) -> list[Path]:
@@ -29,6 +29,10 @@ def audit(path: Path) -> dict:
         "bytes": path.stat().st_size,
         "wrapper_exact": not errors,
         "encoding": None,
+        "k4_base64_canonical": False,
+        "k4_base64_length_mod4": None,
+        "k4_padding_chars": None,
+        "k4_gzip_utf8_valid": False,
         "objects": 0,
         "declared_k48": None,
         "k48_status": None,
@@ -52,7 +56,13 @@ def audit(path: Path) -> dict:
         if tag != "s":
             result["errors"].append(f"k4 uses <{tag}> instead of <s>")
         result["encoding"] = "urlsafe-base64+gzip"
+        result["k4_base64_length_mod4"] = len(encoded) % 4
+        result["k4_padding_chars"] = len(encoded) - len(encoded.rstrip("="))
+        base64_errors = base64_contract(encoded)
+        result["k4_base64_canonical"] = not base64_errors
+        result["errors"].extend(f"k4: {item}" for item in base64_errors)
         level = decode(encoded)
+        result["k4_gzip_utf8_valid"] = True
         result["payload_semantic_roundtrip"] = decode(encode(level)) == level
         records = [record for record in level.split(";")[1:] if record]
         result["objects"] = len(records)
@@ -133,7 +143,9 @@ def main() -> int:
         Path(args.json).write_text(rendered, encoding="utf-8")
     if args.csv:
         with Path(args.csv).open("w", newline="", encoding="utf-8") as handle:
-            fields = ["file", "bytes", "valid", "wrapper_exact", "encoding", "objects",
+            fields = ["file", "bytes", "valid", "wrapper_exact", "encoding",
+                      "k4_base64_canonical", "k4_base64_length_mod4",
+                      "k4_padding_chars", "k4_gzip_utf8_valid", "objects",
                       "declared_k48", "k48_status", "header_chars", "trailing_semicolon",
                       "same_value_splice_byte_exact", "payload_semantic_roundtrip",
                       "has_online_level_id", "error_count", "warning_count"]
