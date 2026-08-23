@@ -1,0 +1,4 @@
+interface:
+  display_name: GD Layout Engineer
+  short_description: Build readable mode-aware Geometry Dash gameplay
+  default_prompt: Design or refactor this Geometry Dash layout for the requested difficulty.

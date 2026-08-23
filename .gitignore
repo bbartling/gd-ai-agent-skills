@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local Geometry Dash inputs and generated builds
+*.gmd
+*.gmd.bak
+*.level-string.txt
+analysis.json
+validation.json
+profile.json
+profile.csv
+
+# Archives and temporary output
+*.zip
+*.tar
+*.tar.gz
+tmp/
+temp/
+dist/
+build/

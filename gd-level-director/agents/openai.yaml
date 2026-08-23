@@ -1,0 +1,4 @@
+interface:
+  display_name: GD Level Director
+  short_description: Coordinate complete Geometry Dash level builds
+  default_prompt: Plan and coordinate this Geometry Dash level build or refactor.

@@ -1,0 +1,4 @@
+interface:
+  display_name: GD Animation Engineer
+  short_description: Build maintainable Geometry Dash animation rigs
+  default_prompt: Design maintainable animation and effects for this Geometry Dash level.
