@@ -93,10 +93,11 @@ It does **not** execute triggers or simulate the game. It cannot prove opacity, 
 
 ## 9. Plain/empty import recovery
 
-If GDShare imports the file entry but Geometry Dash opens a blank or default-looking level, the serialized level string has failed the only compatibility test that matters. Do not infer that the level merely needs more objects. Return to the last importable file and isolate the first failing change with an import ladder.
+If GDShare imports the file entry but Geometry Dash opens a blank or default-looking level, the serialized wrapper or level string has failed the only compatibility test that matters. Do not infer that the level merely needs more objects. First compare the exact XML prologue, BOM/newlines, outer key/tag order, local/online identity, `k34`, and unknown template metadata. Return to the last importable file and isolate the first failing change with an import ladder.
 
-For a conservative V2 when GD is not locally available:
+For a conservative recovery build when GD is not locally available:
 
+- raw-splice into a proven local target-version container; never reserialize its XML tree;
 - preserve the baseline header byte-for-byte;
 - preserve baseline object records as an exact prefix unless a documented repair requires replacement;
 - use only donor-derived object IDs and fields;
@@ -105,7 +106,7 @@ For a conservative V2 when GD is not locally available:
 - initialize new color channels through known-good triggers instead of editing an untested header;
 - add optional density only after the functional build satisfies those constraints.
 
-Run `../scripts/audit_gmd_compatibility.py` with the matching strict options. A pass means only that these conservative invariants hold; the file is still a candidate until GD imports, opens, saves, and re-exports it.
+Run `../scripts/gate_gmd_release.py` and `../scripts/audit_gmd_compatibility.py` with matching strict options. A pass means only that these conservative invariants hold; the file is still a candidate until GD imports, opens, saves, and re-exports it.
 
 ## 10. Packaging audit
 
@@ -117,5 +118,6 @@ Run `../scripts/audit_gmd_compatibility.py` with the matching strict options. A 
 - Primary collision, cues, boss state, and destination remain in LDM.
 - `k48` treatment matches a target-version reference; count-cap warnings remain explicit.
 - Candidate decodes, re-encodes, and compares without losing unknown data.
+- Wrapper is a byte-preserving mutation of the proven local template and passes the release gate.
 - Actual file size/counts reported without using them as quality evidence.
 - GD import, save, re-export, section tests, and full-run status stated separately.

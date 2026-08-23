@@ -4,10 +4,13 @@ from __future__ import annotations
 import argparse, json, math
 from pathlib import Path
 from analyze_gmd import decode_level, parse_object, plist_pairs, TRIGGERS
+from gmd_codec import wrapper_contract
 
 def main():
     ap=argparse.ArgumentParser(); ap.add_argument("gmd"); ap.add_argument("--json"); a=ap.parse_args()
     errors=[]; warnings=[]; p=Path(a.gmd)
+    wrapper_errors, wrapper_warnings = wrapper_contract(p.read_bytes())
+    errors.extend(wrapper_errors); warnings.extend(wrapper_warnings)
     try: outer=plist_pairs(p)
     except Exception as e: errors.append(f"outer plist unreadable: {e}"); outer={}
     data=""
@@ -54,7 +57,8 @@ def main():
             )
         else:
             warnings.append(f"k48 says {declared}; decoded count is {len(objects)}")
-    report={"file":p.name,"valid_structure":not errors,"objects":len(objects),"triggers":trigger_count,
+    report={"file":p.name,"valid_structure":not errors,"known_good_wrapper":not wrapper_errors,
+            "objects":len(objects),"triggers":trigger_count,
             "groups":len(groups),"unresolved_target_groups":missing[:100],"unrecognized_z_layers":invalid_z,
             "errors":errors[:100],"warnings":warnings}
     text=json.dumps(report,indent=2)

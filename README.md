@@ -48,6 +48,7 @@ Shared resources provide:
 - deterministic large-build, boss-fight, destination-reveal, and approximate file-size workflows;
 - build briefs, section cards, group/rig ledgers, boss cards, playtest logs, and release scorecards;
 - structural analysis, codec, comparison, and validation scripts;
+- lossless wrapper splicing, known-good corpus audits, and fail-closed release gates;
 - corpus-derived measurements and adversarial behavior tests.
 
 The reference Geometry Dash levels used during analysis are not redistributed in this repository.
@@ -87,13 +88,19 @@ Run from the repository root:
 ```bash
 python3 shared/scripts/analyze_gmd.py level.gmd --json analysis.json --csv summary.csv
 python3 shared/scripts/validate_gmd.py level.gmd --json validation.json
+python3 shared/scripts/audit_gmd_corpus.py references/ template.gmd \
+  --json corpus-audit.json --csv corpus-audit.csv
 python3 shared/scripts/compare_gmd.py original.gmd candidate.gmd
 python3 shared/scripts/audit_gmd_compatibility.py original.gmd candidate.gmd \
   --require-header-match --require-source-prefix --strict-z-layers --max-objects 65535
+python3 shared/scripts/gate_gmd_release.py candidate.gmd \
+  --container-template known-working-local.gmd \
+  --content-baseline original.gmd --max-objects 65535
 python3 shared/scripts/gmd_codec.py decode level.gmd level-string.txt
+python3 -m unittest discover -s shared/tests -p 'test_*.py'
 ```
 
-These scripts require Python 3 and use the standard library. They validate structure and help detect regressions; they do not simulate Geometry Dash physics or runtime triggers.
+The encoder modifies the proven template's raw bytes instead of reserializing its XML tree. This is deliberate: every supplied human export used the same compact, single-line wrapper, while generic XML serialization changed the declaration/whitespace in two candidates that opened blank. Read [`serialization-integrity.md`](shared/references/serialization-integrity.md). These scripts require Python 3 and use the standard library. They validate structure and help detect regressions; they do not simulate Geometry Dash physics or runtime triggers.
 
 ## Contributing
 

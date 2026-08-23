@@ -1,6 +1,6 @@
 # GDShare `.gmd` format and safe round trips
 
-## Container
+## Container and byte contract
 
 A GDShare level file is a plist-shaped XML document whose dictionary uses RobTop-style `<k>` keys. Important observed outer fields include:
 
@@ -15,6 +15,14 @@ A GDShare level file is a plist-shaped XML document whose dictionary uses RobTop
 - `k48`: object count where present
 
 Presence and meaning vary by version and origin. Preserve all unknown fields and their XML value tags.
+
+The wrapper's bytes are compatibility-relevant. All 11 supplied human reference levels plus the working `OneBlockTest` and source level were ASCII, single-line documents beginning exactly:
+
+```text
+<?xml version="1.0"?><plist version="1.0" gjver="2.0"><dict>
+```
+
+Two rejected generated candidates instead had an `encoding='utf-8'` declaration and a newline introduced by generic XML serialization. Valid XML is therefore not sufficient evidence. Preserve the template's declaration, whitespace, key order, value tags, unknown values, and closing bytes. Replace the text of existing scalar fields in the raw template; do not serialize the parsed tree. See `serialization-integrity.md`.
 
 `k4` decoding is: add Base64 padding if absent → URL-safe Base64 decode → gzip decompress → UTF-8 text. Encoding reverses that process. The bundled codec uses deterministic gzip timestamps for stable output; Geometry Dash may normalize the export later.
 
@@ -40,11 +48,11 @@ This represents object ID 1 at x=150, y=150, in groups 12 and 13. Values are tex
 
 For object counts above 65,535, do not assume `k48` is an unconstrained exact integer. Supplied high-object references can report `65535` while decoding to more objects. Preserve the target-version convention, emit a warning, and make GD's import/save/re-export the compatibility authority.
 
-Avoid generic XML/plist libraries that assume standard `<key>` tags: observed GDShare files use `<k>`. Also avoid libraries that promise convenient objects but drop unknown fields on save.
+Avoid generic XML/plist writers, even if they can read `<k>` tags: they may change the declaration, quote style, whitespace, empty tags, order, or unknown values. A parser may be used for inspection, but final output must use byte-preserving scalar splices into a proven export.
 
 ## Empty-level fallback
 
-GDShare can accept the outer file and add an entry to My Levels while Geometry Dash later rejects the decoded level string and opens a plain/empty editor. A successful plist parse and gzip round trip therefore do not prove editor compatibility. Common suspects include malformed header edits, invalid enum values, unsupported object/property combinations, count/capacity boundaries, and transformations that changed unknown source records.
+GDShare can accept enough metadata to create an entry while the level opens as a plain/empty editor. A successful plist parse and gzip round trip therefore do not prove editor compatibility. Check the serialized wrapper first, then malformed header edits, invalid enum values, unsupported object/property combinations, count/capacity boundaries, and transformations that changed unknown source records.
 
 Start from the last importable export and build an import ladder. Keep the header unchanged for the first extension, preserve source records exactly, add one donor-derived object/system at a time, and test import/open/save/re-export before increasing density. Use `../scripts/audit_gmd_compatibility.py` to enforce the conservative invariants when GD testing is temporarily unavailable.
 

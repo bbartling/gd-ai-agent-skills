@@ -3,6 +3,7 @@
 ## Static file gates
 
 - Outer XML parses and contains `k4`.
+- Wrapper bytes match the proven target-version template: exact declaration, no BOM/newlines, unchanged key/tag order, unchanged unknown metadata, and no accidental online ID.
 - `k4` Base64/gzip decodes.
 - Inner header remains present.
 - Every object has even key/value fields and an ID.
@@ -12,6 +13,7 @@
 - Target groups without key-57 members are traced; they can be intentional controller groups.
 - Before/after changes match the intended scope.
 - Multipart assemblies have verified parent plus local-control membership; no child detaches when the parent moves.
+- A same-value raw splice is byte-identical, and payload encode/decode is semantically lossless.
 
 ## Editor gates
 
