@@ -26,7 +26,7 @@ The first semicolon-delimited record is a header containing color channels and e
 1,1,2,150,3,150,57,12.13;
 ```
 
-This represents object ID 1 at x=150, y=150, in groups 12 and 13. Values are text; keep their precision and do not sort or coerce fields unnecessarily.
+This represents object ID 1 at x=150, y=150, in groups 12 and 13. Values are text; keep their precision and do not sort or coerce fields unnecessarily. Key `24` is a Z-layer enum rather than arbitrary depth; conservative observed values are `-5,-3,-1,1,3,5,7,9,11,13`. Use key `25` for within-layer ordering and use a target-version donor as the final authority.
 
 ## Safe modification strategy
 
@@ -41,6 +41,12 @@ This represents object ID 1 at x=150, y=150, in groups 12 and 13. Values are tex
 For object counts above 65,535, do not assume `k48` is an unconstrained exact integer. Supplied high-object references can report `65535` while decoding to more objects. Preserve the target-version convention, emit a warning, and make GD's import/save/re-export the compatibility authority.
 
 Avoid generic XML/plist libraries that assume standard `<key>` tags: observed GDShare files use `<k>`. Also avoid libraries that promise convenient objects but drop unknown fields on save.
+
+## Empty-level fallback
+
+GDShare can accept the outer file and add an entry to My Levels while Geometry Dash later rejects the decoded level string and opens a plain/empty editor. A successful plist parse and gzip round trip therefore do not prove editor compatibility. Common suspects include malformed header edits, invalid enum values, unsupported object/property combinations, count/capacity boundaries, and transformations that changed unknown source records.
+
+Start from the last importable export and build an import ladder. Keep the header unchanged for the first extension, preserve source records exactly, add one donor-derived object/system at a time, and test import/open/save/re-export before increasing density. Use `../scripts/audit_gmd_compatibility.py` to enforce the conservative invariants when GD testing is temporarily unavailable.
 
 ## Group and reference hazards
 

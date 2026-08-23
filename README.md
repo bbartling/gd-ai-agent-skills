@@ -88,6 +88,8 @@ Run from the repository root:
 python3 shared/scripts/analyze_gmd.py level.gmd --json analysis.json --csv summary.csv
 python3 shared/scripts/validate_gmd.py level.gmd --json validation.json
 python3 shared/scripts/compare_gmd.py original.gmd candidate.gmd
+python3 shared/scripts/audit_gmd_compatibility.py original.gmd candidate.gmd \
+  --require-header-match --require-source-prefix --strict-z-layers --max-objects 65535
 python3 shared/scripts/gmd_codec.py decode level.gmd level-string.txt
 ```
 

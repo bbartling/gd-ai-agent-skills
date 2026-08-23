@@ -31,9 +31,10 @@ def main():
                     try:
                         if not math.isfinite(float(o[key])): raise ValueError
                     except ValueError: errors.append(f"object {index}: invalid coordinate key {key}")
-    groups=set(); targeted=[]; trigger_count=0
+    groups=set(); targeted=[]; trigger_count=0; z_layers=[]
     for o in objects:
         groups.update(g for g in o.get(57,"").split(".") if g)
+        if 24 in o: z_layers.append(o[24])
         try: oid=int(o.get(1,-1))
         except ValueError: oid=-1
         if oid in TRIGGERS:
@@ -41,6 +42,9 @@ def main():
             if 51 in o and o[51] not in ("","0"): targeted.append(o[51])
     missing=sorted(set(targeted)-groups,key=lambda x:int(x) if x.isdigit() else 10**9)
     if missing: warnings.append(f"{len(missing)} targeted group IDs have no visible key-57 member; may be intentional dynamic/trigger groups")
+    safe_z={"-5","-3","-1","1","3","5","7","9","11","13"}
+    invalid_z=sorted(set(z_layers)-safe_z,key=lambda x:int(x) if x.lstrip("-").isdigit() else 10**9)
+    if invalid_z: warnings.append(f"unrecognized key-24 Z-layer enum values: {invalid_z}; clone target-version values instead of treating Z layer as arbitrary depth")
     declared=outer.get("k48")
     if declared and declared.isdigit() and int(declared)!=len(objects):
         if int(declared)==65535 and len(objects)>65535:
@@ -51,7 +55,8 @@ def main():
         else:
             warnings.append(f"k48 says {declared}; decoded count is {len(objects)}")
     report={"file":p.name,"valid_structure":not errors,"objects":len(objects),"triggers":trigger_count,
-            "groups":len(groups),"unresolved_target_groups":missing[:100],"errors":errors[:100],"warnings":warnings}
+            "groups":len(groups),"unresolved_target_groups":missing[:100],"unrecognized_z_layers":invalid_z,
+            "errors":errors[:100],"warnings":warnings}
     text=json.dumps(report,indent=2)
     if a.json: Path(a.json).write_text(text,encoding="utf-8")
     print(text); return 1 if errors else 0

@@ -12,7 +12,7 @@ This is a focused working map, not an exhaustive promise across every GD version
 | 6 | Rotation |
 | 20, 61 | Editor layer 1 and 2 |
 | 21, 22 | Color channel 1 and 2 |
-| 24, 25 | Z layer and Z order |
+| 24, 25 | Enumerated Z layer and within-layer Z order; do not use key 24 as arbitrary depth |
 | 32 | Legacy uniform scale |
 | 34 | Group parent flag |
 | 41–44 | HSV enabled/value for color 1/2 |

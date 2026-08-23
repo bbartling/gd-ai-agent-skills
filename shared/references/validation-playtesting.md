@@ -8,6 +8,7 @@
 - Every object has even key/value fields and an ID.
 - Coordinates are finite.
 - Declared and decoded object counts are reconciled.
+- Key-24 Z-layer values are valid target-version enums rather than arbitrary depth numbers.
 - Target groups without key-57 members are traced; they can be intentional controller groups.
 - Before/after changes match the intended scope.
 - Multipart assemblies have verified parent plus local-control membership; no child detaches when the parent moves.
@@ -19,6 +20,7 @@
 - Beginning/end and each section render.
 - Collision objects, portals, start positions, hidden helpers, editor layers, and Z ordering are present.
 - GD can save and re-export the level.
+- The editor contains the expected source and added objects; a created My Levels entry with a plain/empty editor is a failed import.
 
 A static coordinate render may be used before import to inspect composition, density, whitespace, silhouettes, and section scale. Call it a spatial composition preview. It cannot verify opacity state, trigger order, camera interpolation, collision, song sync, or the runtime frame.
 

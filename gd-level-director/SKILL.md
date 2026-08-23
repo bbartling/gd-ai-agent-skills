@@ -20,9 +20,10 @@ A supposed demon with trivial inputs fails even if it looks polished. A dense an
 3. Build or repair the collision layout first. Use `gd-layout-engineer` and read `../shared/references/layout-spacing.md`, `difficulty-game-modes.md`, and `difficulty-calibration.md`.
 4. Require complete start-to-finish playability in an undecorated copy. Decoration may not conceal hitboxes or substitute for gameplay.
 5. Create a group/layer/color-channel budget before animation. Use `gd-animation-engineer` and read `animation-systems.md` and `layering-performance.md`. Any multipart character, boss, vehicle, or destination needs an explicit parent/child hierarchy ledger before triggers are emitted.
-6. Decorate and animate one representative section to the presentation contract in `animation-cookbook.md`; validate readability and performance, then propagate the system. Avoid hand-authoring thousands of unique objects when a repeated module or owned trigger rig works.
-7. Run structural validation, before/after comparison, editor inspection, practice runs, normal-mode runs, and fresh-player testing. Use `gd-level-qa`.
-8. Complete `../shared/templates/release-scorecard.md`. Export a new `.gmd`, retain a build report, and state what was actually tested. Never call static analysis a physics verification.
+6. Before scaling procedural density, create a small import canary from the exact target-version template. Import, open, save, and re-export it in Geometry Dash. If GD access is unavailable, keep the full build conservative: unchanged header, exact source prefix where applicable, donor-derived fields, enumerated Z layers, and object count below the chosen compatibility ceiling.
+7. Decorate and animate one representative section to the presentation contract in `animation-cookbook.md`; validate readability and performance, then propagate the system. Avoid hand-authoring thousands of unique objects when a repeated module or owned trigger rig works.
+8. Run structural validation, compatibility audit, before/after comparison, editor inspection, practice runs, normal-mode runs, and fresh-player testing. Use `gd-level-qa`.
+9. Complete `../shared/templates/release-scorecard.md`. Export a new `.gmd`, retain a build report, and state what was actually tested. Never call static analysis a physics verification.
 
 ## Decision rules
 
@@ -38,6 +39,7 @@ A supposed demon with trivial inputs fails even if it looks polished. A dense an
 - Never hide uncertainty behind object counts, trigger counts, or words such as “extreme,” “epic,” “professional,” or “fully validated.”
 - If the user requests a target file size, treat it as a packaging budget—not a quality metric. Finish gameplay, art, and animation first; tune only optional high-detail density afterward.
 - A finale must complete the dramatic promise: readable arrival, viewport-scale destination or payoff, controlled reveal, recovery space, and a clear finish. A tiny prop plus text is not a destination scene.
+- If GD opens the candidate as a plain or empty level, stop all art/difficulty work. Treat it as rejection of the serialized level string, return to the last importable baseline, and bisect header changes, property enums, object systems, and density with import canaries.
 
 ## Routing
 

@@ -19,6 +19,8 @@ Use these scenarios to evaluate an AI agent using the suite. Passing means its p
 | User wants a moon made of cheese as the destination | Builds a viewport-scale silhouette with cheese holes/material cues, approach, reveal, recovery/landing, victory motion, and readable finish | Places a small yellow circle or text after the last obstacle |
 | A static preview looks excellent | Uses it only for spatial composition and still labels runtime/collision/sync unverified until GD testing | Calls the level ready based on a coordinate render or screenshot |
 | Decoded object count exceeds 65,535 while `k48` says 65,535 | Checks target-version references, preserves the observed cap convention, warns, and requires import/save/re-export | Treats the warning as certain corruption or rewrites unknown metadata without evidence |
+| Structurally valid `.gmd` imports as a plain/empty level | Marks level-string compatibility as failed, returns to the last importable baseline, and bisects header/enums/systems/density through an import ladder | Adds more decoration, calls the import successful, or republishes the same serialization strategy |
+| Large extension cannot be tested in GD before delivery | Preserves header and source prefix, uses donor-derived fields and valid enums, keeps exact `k48` below a conservative ceiling, runs compatibility audit, and labels it candidate | Makes untested header mutations, uses arbitrary field values, targets size before compatibility, or calls the result fixed/ready |
 
 ## Suite-level pass condition
 

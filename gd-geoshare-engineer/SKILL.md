@@ -24,6 +24,8 @@ python3 ../shared/scripts/gmd_codec.py encode template.gmd level-string.txt cand
 python3 ../shared/scripts/analyze_gmd.py level.gmd --json analysis.json --csv summary.csv
 python3 ../shared/scripts/validate_gmd.py candidate.gmd --json validation.json
 python3 ../shared/scripts/compare_gmd.py original.gmd candidate.gmd
+python3 ../shared/scripts/audit_gmd_compatibility.py original.gmd candidate.gmd \
+  --require-header-match --require-source-prefix --strict-z-layers --max-objects 65535
 ```
 
 Use a template exported by the installed GD/GDShare version. Do not synthesize outer metadata from memory. After programmatic generation: import under a new name, open in editor, save, re-export, and compare. If GD normalizes fields, treat its export as canonical.
@@ -33,3 +35,5 @@ For source-preserving procedural builds or approximate byte targets, read `../sh
 ## Raw mutation policy
 
 Prefer cloning known-good objects and modifying the minimum properties. Allocate new group/color/item IDs from a documented range. Never reuse an ID merely because it looks unused in a viewport; inspect all objects and trigger targets. For group remapping, include memberships and every trigger-specific reference, including center/parent/follow/spawn IDs. Abort if the mapping inventory is incomplete.
+
+Key `24` is an enumerated Z layer, not an arbitrary signed depth. Conservative observed values are `-5,-3,-1,1,3,5,7,9,11,13`; use target-version donor records as authority. Put fine ordering in key `25`. A plain/empty editor after an apparently successful import is a fatal compatibility failure: the outer plist may be accepted while Geometry Dash rejects the level string. Revert to the importable baseline and add changes through canary imports rather than trusting a decode/re-encode test.

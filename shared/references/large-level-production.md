@@ -91,7 +91,23 @@ A spatial composition preview may plot objects by coordinates, scale, color role
 
 It does **not** execute triggers or simulate the game. It cannot prove opacity, camera, rotation centers, collision, input windows, song sync, LDM behavior, or restart state. Keep the build labeled **candidate requiring GD import and playtest** until those evidence levels are reached.
 
-## 9. Packaging audit
+## 9. Plain/empty import recovery
+
+If GDShare imports the file entry but Geometry Dash opens a blank or default-looking level, the serialized level string has failed the only compatibility test that matters. Do not infer that the level merely needs more objects. Return to the last importable file and isolate the first failing change with an import ladder.
+
+For a conservative V2 when GD is not locally available:
+
+- preserve the baseline header byte-for-byte;
+- preserve baseline object records as an exact prefix unless a documented repair requires replacement;
+- use only donor-derived object IDs and fields;
+- keep key-24 Z layers on target-version enum values;
+- keep `k48` equal to the decoded object count and remain below 65,535 objects until a larger canary is proven;
+- initialize new color channels through known-good triggers instead of editing an untested header;
+- add optional density only after the functional build satisfies those constraints.
+
+Run `../scripts/audit_gmd_compatibility.py` with the matching strict options. A pass means only that these conservative invariants hold; the file is still a candidate until GD imports, opens, saves, and re-exports it.
+
+## 10. Packaging audit
 
 - Source copy/hash retained; preserved and repaired ranges documented.
 - Same source/seed/options reproduce the same candidate.
