@@ -2,7 +2,7 @@
 
 ## Why this gate exists
 
-A `.gmd` can be readable to a permissive Python decoder and still open as a blank level. Cheese Moon V1, V2, and V3 all stripped required terminal `=` padding from `k4`. The old decoder silently added that padding before decoding, so all three broken files passed our tests. Every one of the 13 supplied working exports stored canonical URL-safe Base64 with `len(k4) % 4 == 0`; the three rejected builds had `len(k4) % 4 == 3`. The user's imported one-block/three-spike canary then proved that the corrected padded encoder works in Geometry Dash.
+A `.gmd` can be readable to a permissive Python decoder and still open as a blank level. Cheese Moon V1, V2, and V3 all stripped required terminal `=` padding from `k4`. The old decoder silently added that padding before decoding, so all three broken files passed our tests. Every one of the 13 supplied working exports stored canonical URL-safe Base64 with `len(k4) % 4 == 0`; the three rejected builds had `len(k4) % 4 == 3`. The user's imported one-block/three-spike canary proved the corrected encoder, and the user subsequently confirmed that the complete 46,605-object V4 parses after restoring V3's single missing `=`.
 
 The supplied evidence set contained 13 known-working exports: 11 reference levels, `rocket power.gmd`, and `OneBlockTest.gmd`. All 13 were ASCII, single-line, had no BOM, used the same exact prologue, ended directly in `</dict></plist>`, stored canonical padded URL-safe Base64, decompressed as valid gzip/UTF-8, and ended their inner level string with a semicolon.
 

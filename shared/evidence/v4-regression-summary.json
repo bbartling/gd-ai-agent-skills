@@ -33,6 +33,6 @@
     "k4_padding_chars": 1,
     "release_gate": "pass",
     "content_change_from_v3": "one required terminal equals sign; name changed to V4",
-    "geometry_dash_import_open": "not-yet-tested"
+    "geometry_dash_import_open": "user-confirmed-pass"
   }
 }

@@ -9,6 +9,7 @@ The old encoder called `rstrip("=")` on `k4`. The old decoder then calculated an
 | Supplied working exports | 13 | `0` for all | Pass |
 | Cheese Moon V1–V3 | 3 | `3` for all | Fail: required padding stripped |
 | One-block/three-spike canary | 1 | `0`, ending `==` | Pass; imported and opened in Geometry Dash |
+| Cheese Moon V4 | 1 | `0`, ending `=` | Pass; user confirmed the complete level parses in Geometry Dash |
 
 The 13 working files comprise the 11 uploaded famous/gameplay references, `OneBlockTest.gmd`, and `rocket power.gmd`. The corpus is not redistributed; the regression suite records hashes and derived results only.
 
@@ -31,3 +32,5 @@ Green behavior:
 - a new candidate must pass the complete template, payload, count, header, and source-prefix release gate.
 
 The GitHub workflow runs the synthetic unit tests on every push and pull request. Run `run_gmd_regression_gate.py` locally with the permission-safe external corpus to exercise the full 13-good/3-bad matrix.
+
+The V4 confirmation closes the blank-level regression: the same 46,605-object decoded content rejected in V3 was accepted after restoring its single required terminal `=`. Gameplay, trigger behavior, performance, and difficulty still require separate in-game testing.
