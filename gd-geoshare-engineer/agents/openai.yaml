@@ -1,4 +1,0 @@
-interface:
-  display_name: GDShare Engineer
-  short_description: Safely inspect and modify GDShare files
-  default_prompt: Inspect or modify this GDShare file while preserving unknown data.

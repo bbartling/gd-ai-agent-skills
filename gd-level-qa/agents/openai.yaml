@@ -1,4 +1,0 @@
-interface:
-  display_name: GD Level QA
-  short_description: Validate Geometry Dash files and gameplay evidence
-  default_prompt: Validate this Geometry Dash level and report evidence by gate.

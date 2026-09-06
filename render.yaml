@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: vibe23-energyplus-worker
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: API_KEY
+        generateValue: true
+      - key: MAX_CONCURRENT_JOBS
+        value: "1"
+      - key: JOB_TTL_HOURS
+        value: "24"
+      - key: MAX_UPLOAD_MB
+        value: "50"
+      - key: SIM_TIMEOUT_SECONDS
+        value: "900"
+

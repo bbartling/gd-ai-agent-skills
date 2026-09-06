@@ -1,119 +1,99 @@
-# Geometry Dash AI Agent Skills
+# Vibe 23 EnergyPlus Worker
 
-A production-focused skill suite for AI agents that inspect, refactor, generate, animate, and validate Geometry Dash levels stored as GDShare `.gmd` files.
+A small authenticated HTTP worker for EnergyPlus 26.1 simulations. It is designed to run as a Docker web service on Render and serve the Streamlit Vibe 23 frontend.
 
-The package is designed for a simple workflow: download this repository as a ZIP, upload that ZIP together with one or more `.gmd` files to an AI chat session, and ask the agent to follow the included skills. It is intentionally strict about gameplay, spacing, animation ownership, difficulty evidence, file preservation, and honest validation.
+The image downloads the official EnergyPlus 26.1 Ubuntu 24.04 x86-64 release, verifies its published SHA-256 checksum, and exposes a one-job-at-a-time FastAPI queue. Jobs run in separate directories and expire after 24 hours by default.
 
-## Download and use in an AI chat
+## Deploy on Render
 
-1. Download the current [`develop` branch as a ZIP](https://github.com/bbartling/gd-ai-agent-skills/archive/refs/heads/develop.zip), or select **Code → Download ZIP** on GitHub.
-2. Upload the downloaded repository ZIP to your AI chat session.
-3. Upload the `.gmd` level you want created, analyzed, or enhanced. Include strong reference `.gmd` files when useful.
-4. Give the agent a concrete brief and explicitly tell it to extract the ZIP, read `gd-level-director/SKILL.md`, and follow every routed skill/reference needed for the task.
-5. Import the returned candidate into Geometry Dash, playtest it, and provide the resulting `.gmd`, video, screenshots, and test notes for another revision.
+1. Create a new GitHub repository and upload this repository's contents.
+2. In Render, choose **New → Blueprint** and select the repository.
+3. Render reads `render.yaml`, builds the Docker image, and generates `API_KEY`.
+4. In the Render service, copy the generated `API_KEY` from **Environment**.
+5. Set the same value in Streamlit Community Cloud secrets, together with the Render URL:
 
-Example prompt:
-
-```text
-Extract gd-ai-agent-skills-develop.zip and use the included Geometry Dash skills.
-Start with gd-level-director/SKILL.md and follow every relevant linked reference.
-
-Enhance my attached level.gmd into a cohesive [difficulty] level with:
-- [theme and story]
-- [song ID, offset, BPM, or reference level]
-- [game modes and mechanics]
-- [visual style and animation goals]
-- [target length and performance constraints]
-
-Preserve the original file, produce a newly named .gmd, run the bundled structural
-validators, and label the result a candidate unless Geometry Dash playtesting evidence
-is available. Return the candidate plus a concise build and playtest report.
+```toml
+EPLUS_WORKER_URL = "https://your-render-service.onrender.com"
+EPLUS_WORKER_API_KEY = "generated-render-api-key"
 ```
 
-## What is included
+Choose a paid Render instance for dependable simulations. Free services can sleep, have ephemeral storage, and may not provide enough uninterrupted CPU time for a full 169-candidate campaign.
 
-| Skill | Responsibility |
-|---|---|
-| [`gd-level-director`](gd-level-director/SKILL.md) | Coordinates the complete build, balances gameplay/presentation, and enforces release gates. |
-| [`gd-geoshare-engineer`](gd-geoshare-engineer/SKILL.md) | Safely decodes, encodes, profiles, compares, and modifies GDShare files while preserving unknown data. |
-| [`gd-layout-engineer`](gd-layout-engineer/SKILL.md) | Designs jumpable routes, mode-specific mechanics, transitions, difficulty, and recovery windows. |
-| [`gd-animation-engineer`](gd-animation-engineer/SKILL.md) | Builds owned trigger rigs, depth, effects, cameras, multipart assemblies, reset behavior, and LDM. |
-| [`gd-level-qa`](gd-level-qa/SKILL.md) | Separates structural, editor, trigger, gameplay, human-quality, and performance evidence. |
+## API
 
-Shared resources provide:
-
-- `.gmd` format and trigger-field guidance;
-- layout spacing and game-mode difficulty rules;
-- animation systems, set-piece patterns, layering, and performance budgets;
-- deterministic large-build, boss-fight, destination-reveal, and approximate file-size workflows;
-- build briefs, section cards, group/rig ledgers, boss cards, playtest logs, and release scorecards;
-- structural analysis, codec, comparison, and validation scripts;
-- lossless wrapper splicing, known-good corpus audits, and fail-closed release gates;
-- canonical padded Base64 enforcement, known-bad rejection tests, and a minimal three-spike import canary;
-- corpus-derived measurements and adversarial behavior tests.
-
-The reference Geometry Dash levels used during analysis are not redistributed in this repository.
-
-## Recommended agent workflow
-
-```mermaid
-flowchart TD
-    A["Preserve and profile source"] --> B["Brief and section contracts"]
-    B --> C["Complete playable graybox"]
-    C --> D["Difficulty and transition pass"]
-    D --> E["Full-quality visual prototype"]
-    E --> F["Modular production and animation rigs"]
-    F --> G["Structural validation"]
-    G --> H["GD import, playtest, and iteration"]
-```
-
-The essential rule is simple: a high object count, valid decode, or attractive static preview does not prove a good level. Gameplay, difficulty, visuals, animation, sync, performance, and restart behavior are separate systems with separate evidence.
-
-## Validation language
-
-Use claims that match the evidence actually obtained:
-
-1. **Structurally validated:** the container and payload parse and pass static checks.
-2. **Imports and opens:** Geometry Dash accepts the file and the editor displays it.
-3. **Trigger-tested:** animation rigs start, stop, reset, replay, and degrade correctly in LDM.
-4. **Section-tested:** gameplay and transitions were tested from realistic entries.
-5. **Full-run tested:** practice and/or normal-mode clears were completed from zero.
-6. **Verified:** the final difficulty and complete run have appropriate human verification.
-
-If the environment cannot launch Geometry Dash, the output must remain a **candidate build requiring GD import and playtest**.
-
-## Local validation
-
-Run from the repository root:
+Health does not require authentication:
 
 ```bash
-python3 shared/scripts/analyze_gmd.py level.gmd --json analysis.json --csv summary.csv
-python3 shared/scripts/validate_gmd.py level.gmd --json validation.json
-python3 shared/scripts/audit_gmd_corpus.py references/ template.gmd \
-  --json corpus-audit.json --csv corpus-audit.csv
-python3 shared/scripts/compare_gmd.py original.gmd candidate.gmd
-python3 shared/scripts/audit_gmd_compatibility.py original.gmd candidate.gmd \
-  --require-header-match --require-source-prefix --strict-z-layers --max-objects 65535
-python3 shared/scripts/gate_gmd_release.py candidate.gmd \
-  --container-template known-working-local.gmd \
-  --content-baseline original.gmd --max-objects 65535
-python3 shared/scripts/gmd_codec.py decode level.gmd level-string.txt
-python3 shared/scripts/run_gmd_regression_gate.py \
-  --candidate candidate.gmd \
-  --container-template known-working-local.gmd \
-  --content-baseline original.gmd \
-  --known-good references/ known-working-local.gmd original.gmd \
-  --known-bad rejected-v1.gmd rejected-v2.gmd rejected-v3.gmd \
-  --manifest shared/evidence/regression-corpus-manifest.json
-python3 -m unittest discover -s shared/tests -p 'test_*.py'
+curl https://your-render-service.onrender.com/healthz
 ```
 
-The encoder modifies the proven template's raw bytes instead of reserializing its XML tree and retains canonical Base64 padding. This is deliberate: the old encoder stripped terminal `=` while the old decoder silently restored it, causing all three Cheese Moon candidates to pass locally and open blank in Geometry Dash. All 13 supplied working exports had `len(k4) % 4 == 0`, all three rejected builds failed that invariant, and a corrected one-block/three-spike canary imported successfully. Read [`serialization-integrity.md`](shared/references/serialization-integrity.md). These scripts require Python 3 and use the standard library. They validate structure and help detect regressions; they do not simulate Geometry Dash physics or runtime triggers.
+Submit a simulation:
 
-## Contributing
+```bash
+curl -X POST https://your-render-service.onrender.com/v1/jobs \
+  -H "Authorization: Bearer $EPLUS_WORKER_API_KEY" \
+  -F "idf=@model.idf" \
+  -F "epw=@weather.epw" \
+  -F "expand_objects=true"
+```
 
-Keep changes evidence-driven and focused on agent behavior. Validate every `SKILL.md`, preserve relative links, test changed scripts, and add behavioral tests for meaningful failure modes rather than wording preferences. Do not commit copyrighted reference levels, generated `.gmd` builds, chat uploads, caches, or local virtual environments.
+Poll and download:
 
-## License
+```bash
+curl -H "Authorization: Bearer $EPLUS_WORKER_API_KEY" \
+  https://your-render-service.onrender.com/v1/jobs/JOB_ID
 
-MIT — see [`LICENSE`](LICENSE).
+curl -L -H "Authorization: Bearer $EPLUS_WORKER_API_KEY" \
+  -o results.zip \
+  https://your-render-service.onrender.com/v1/jobs/JOB_ID/results
+```
+
+Interactive API documentation is available at `/docs`.
+
+## Local development
+
+Build and run the same image Render will use:
+
+```bash
+docker build -t vibe23-energyplus-worker .
+docker run --rm -p 8000:8000 -e API_KEY=local-secret vibe23-energyplus-worker
+```
+
+Then open <http://localhost:8000/docs>.
+
+For fast Python-only checks without building EnergyPlus:
+
+```bash
+python -m venv .venv
+. .venv/bin/activate
+pip install -r requirements.txt pytest ruff
+pytest -q
+ruff check app tests
+```
+
+## Operational behavior
+
+- `API_KEY` is required as a bearer token for every job endpoint.
+- `MAX_CONCURRENT_JOBS=1` avoids CPU contention on a small Render instance.
+- `SIM_TIMEOUT_SECONDS=900` limits one EnergyPlus process to 15 minutes.
+- `MAX_UPLOAD_MB=50` limits each uploaded file.
+- `JOB_TTL_HOURS=24` removes old jobs when the service next receives a submission or starts.
+- Output files are returned as a ZIP even when EnergyPlus reports a severe/fatal error, so the caller can inspect `eplusout.err`.
+- Running jobs do not survive a service restart. Completed job files survive only as long as the instance filesystem. Add a Render persistent disk or object storage if results must survive deploys.
+
+## Vibe 23 integration boundary
+
+This repository runs one prepared IDF against one EPW. Vibe 23 still needs a small client module that:
+
+1. prepares each candidate IDF;
+2. submits jobs without blocking Streamlit;
+3. polls their status;
+4. downloads and parses the output;
+5. constructs `ranking.json` and `twin_export.json`.
+
+For 169 candidates, keep concurrency low initially and add a batch/campaign endpoint after measuring one-day simulation time and Render costs.
+
+## License and provenance
+
+Worker code is provided under the MIT License. EnergyPlus is downloaded from the official NatLabRockies release and retains its own license. This repository does not redistribute the EnergyPlus archive.
+
