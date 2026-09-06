@@ -6,18 +6,38 @@ The image downloads the official EnergyPlus 26.1 Ubuntu 24.04 x86-64 release, ve
 
 ## Deploy on Render
 
-1. Create a new GitHub repository and upload this repository's contents.
-2. In Render, choose **New → Blueprint** and select the repository.
-3. Render reads `render.yaml`, builds the Docker image, and generates `API_KEY`.
-4. In the Render service, copy the generated `API_KEY` from **Environment**.
-5. Set the same value in Streamlit Community Cloud secrets, together with the Render URL:
+1. Push this repository to GitHub (branch `develop` or `main`).
+2. In Render, choose **New → Blueprint** and select the repository so `render.yaml` applies.
+3. Confirm Environment includes `API_KEY` (Blueprint uses `generateValue: true`).
+4. If live `/healthz` shows `"api_key_configured": false`, set `API_KEY` manually:
+
+**Dashboard (fastest)**  
+Render → `vibe23-energyplus-worker` → **Environment** → add `API_KEY` = a long random secret → Save → Manual Deploy.
+
+**Script (needs a Render *account* API key `rnd_…`, not the worker key)**  
+
+```powershell
+$env:RENDER_API_KEY = "rnd_..."
+.\scripts\configure_render.ps1
+```
+
+Writes gitignored `.env.render.local` with values for Streamlit.
+
+5. Streamlit Community Cloud secrets:
 
 ```toml
-EPLUS_WORKER_URL = "https://your-render-service.onrender.com"
-EPLUS_WORKER_API_KEY = "generated-render-api-key"
+EPLUS_WORKER_URL = "https://vibe23-energyplus-worker.onrender.com"
+EPLUS_WORKER_API_KEY = "same-as-render-service-API_KEY"
 ```
 
 Choose a paid Render instance for dependable simulations. Free services can sleep, have ephemeral storage, and may not provide enough uninterrupted CPU time for a full 169-candidate campaign.
+
+Verify:
+
+```bash
+curl https://vibe23-energyplus-worker.onrender.com/healthz
+# expect ok=true and api_key_configured=true
+```
 
 ## API
 

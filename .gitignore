@@ -1,8 +1,12 @@
+# Local / CI secrets — never commit.
+.env
+.env.*
+!.env.example
+*.pem
+.venv/
 __pycache__/
 .pytest_cache/
 .ruff_cache/
-.venv/
+.DS_Store
+results/
 jobs/
-*.pyc
-.env
-

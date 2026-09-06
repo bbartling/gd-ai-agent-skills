@@ -194,12 +194,29 @@ async def _execute(job_id: str, expand_objects: bool) -> None:
         _write_metadata(job_id, metadata)
 
 
+@app.get("/")
+def root() -> dict:
+    return {
+        "service": "vibe23-energyplus-worker",
+        "version": APP_VERSION,
+        "healthz": "/healthz",
+        "docs": "/docs",
+        "jobs": "POST /v1/jobs (Bearer API_KEY required)",
+    }
+
+
 @app.get("/healthz")
 def health() -> dict:
     available = ENERGYPLUS_EXE.is_file() and os.access(ENERGYPLUS_EXE, os.X_OK)
     if not available:
         raise HTTPException(status_code=503, detail="EnergyPlus executable unavailable")
-    return {"ok": True, "service_version": APP_VERSION, "energyplus_version": "26.1.0"}
+    api_key_configured = bool(os.getenv("API_KEY", "").strip())
+    return {
+        "ok": True,
+        "service_version": APP_VERSION,
+        "energyplus_version": "26.1.0",
+        "api_key_configured": api_key_configured,
+    }
 
 
 @app.post("/v1/jobs", status_code=202, dependencies=[Depends(require_api_key)])
