@@ -165,7 +165,8 @@ async def _execute(job_id: str, expand_objects: bool) -> None:
             fatal_count = len(re.findall(r"\*\*\s*Fatal\s*\*\*", err_text, re.IGNORECASE))
             severe_count = len(re.findall(r"\*\*\s*Severe\s*\*\*", err_text, re.IGNORECASE))
             warning_count = len(re.findall(r"\*\*\s*Warning\s*\*\*", err_text, re.IGNORECASE))
-            archive = shutil.make_archive(str(root / "results"), "zip", root_dir=root, base_dir="output")
+            # Zip contents at archive root (eplusout.csv, …) — not nested under output/
+            archive = shutil.make_archive(str(root / "results"), "zip", root_dir=output)
             success = process.returncode == 0 and fatal_count == 0 and severe_count == 0
             metadata.update(
                 status="succeeded" if success else "failed",
