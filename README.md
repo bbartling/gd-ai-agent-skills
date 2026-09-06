@@ -1,6 +1,6 @@
 # Vibe 23 EnergyPlus Worker
 
-Authenticated FastAPI worker that runs **EnergyPlus 26.1** simulations in Docker. It backs the [Vibe 23 Residential DSM Studio](https://github.com/bbartling/py-bacnet-stacks-playground/tree/develop/vibe_code_apps_23) (Streamlit) with a one-job-at-a-time queue.
+Authenticated FastAPI worker that runs **EnergyPlus 26.1** simulations in Docker. It backs the [Vibe 23 Residential DSM Studio](https://github.com/bbartling/py-bacnet-stacks-playground/tree/develop/vibe_code_apps_23) (Streamlit) with a **queued, one-at-a-time** job runner (`MAX_CONCURRENT_JOBS`, default 1).
 
 | | |
 |---|---|
@@ -77,6 +77,15 @@ curl -L -H "Authorization: Bearer $EPLUS_WORKER_API_KEY" \
   -o results.zip \
   https://vibe23-energyplus-worker.onrender.com/v1/jobs/JOB_ID/results
 ```
+
+List recent jobs + queue depth (Streamlit sidebar uses this):
+
+```bash
+curl -H "Authorization: Bearer $EPLUS_WORKER_API_KEY" \
+  "https://vibe23-energyplus-worker.onrender.com/v1/jobs?limit=20"
+```
+
+`/healthz` also reports `queue: {queued, running, max_concurrent}` after this version is deployed.
 
 ## Local development
 

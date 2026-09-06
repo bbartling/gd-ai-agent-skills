@@ -26,7 +26,7 @@ from fastapi import (
 )
 from fastapi.responses import FileResponse
 
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.1.0"
 JOB_ROOT = Path(os.getenv("JOB_ROOT", "/var/lib/eplus-worker/jobs"))
 ENERGYPLUS_EXE = Path(os.getenv("ENERGYPLUS_EXE", "/opt/EnergyPlus-26-1-0/energyplus"))
 MAX_UPLOAD_BYTES = int(float(os.getenv("MAX_UPLOAD_MB", "50")) * 1024 * 1024)
@@ -35,6 +35,30 @@ JOB_TTL_SECONDS = int(float(os.getenv("JOB_TTL_HOURS", "24")) * 3600)
 MAX_CONCURRENT_JOBS = max(1, int(os.getenv("MAX_CONCURRENT_JOBS", "1")))
 _semaphore = asyncio.Semaphore(MAX_CONCURRENT_JOBS)
 _idf_version_re = re.compile(r"(?im)^\s*Version\s*,\s*([0-9.]+)\s*;")
+
+
+def _queue_snapshot() -> dict:
+    """Count jobs currently queued or running on disk."""
+    queued = 0
+    running = 0
+    if JOB_ROOT.exists():
+        for child in JOB_ROOT.iterdir():
+            meta_path = child / "job.json"
+            if not meta_path.is_file():
+                continue
+            try:
+                status = json.loads(meta_path.read_text(encoding="utf-8")).get("status")
+            except (OSError, json.JSONDecodeError):
+                continue
+            if status == "queued":
+                queued += 1
+            elif status == "running":
+                running += 1
+    return {
+        "queued": queued,
+        "running": running,
+        "max_concurrent": MAX_CONCURRENT_JOBS,
+    }
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
@@ -203,6 +227,7 @@ def root() -> dict:
         "healthz": "/healthz",
         "docs": "/docs",
         "jobs": "POST /v1/jobs (Bearer API_KEY required)",
+        "list_jobs": "GET /v1/jobs (Bearer API_KEY required)",
     }
 
 
@@ -212,12 +237,39 @@ def health() -> dict:
     if not available:
         raise HTTPException(status_code=503, detail="EnergyPlus executable unavailable")
     api_key_configured = bool(os.getenv("API_KEY", "").strip())
+    queue = _queue_snapshot()
     return {
         "ok": True,
         "service_version": APP_VERSION,
         "energyplus_version": "26.1.0",
         "api_key_configured": api_key_configured,
+        "queue": queue,
     }
+
+
+@app.get("/v1/jobs", dependencies=[Depends(require_api_key)])
+def list_jobs(limit: int = 25) -> dict:
+    """List recent jobs (newest first) for Streamlit / ops dashboards."""
+    _cleanup_expired()
+    limit = max(1, min(int(limit), 100))
+    jobs: list[dict] = []
+    if JOB_ROOT.exists():
+        children = sorted(
+            (p for p in JOB_ROOT.iterdir() if p.is_dir()),
+            key=lambda p: p.stat().st_mtime,
+            reverse=True,
+        )
+        for child in children:
+            meta_path = child / "job.json"
+            if not meta_path.is_file():
+                continue
+            try:
+                jobs.append(json.loads(meta_path.read_text(encoding="utf-8")))
+            except (OSError, json.JSONDecodeError):
+                continue
+            if len(jobs) >= limit:
+                break
+    return {"jobs": jobs, "queue": _queue_snapshot(), "limit": limit}
 
 
 @app.post("/v1/jobs", status_code=202, dependencies=[Depends(require_api_key)])

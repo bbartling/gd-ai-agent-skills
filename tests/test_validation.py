@@ -57,3 +57,19 @@ def test_jobs_require_api_key(monkeypatch) -> None:
     client = TestClient(app)
     resp = client.post("/v1/jobs")
     assert resp.status_code == 503
+
+
+def test_list_jobs_requires_api_key(monkeypatch, tmp_path) -> None:
+    monkeypatch.setenv("API_KEY", "secret")
+    monkeypatch.setenv("JOB_ROOT", str(tmp_path))
+    from app import main as worker_main
+
+    monkeypatch.setattr(worker_main, "JOB_ROOT", tmp_path)
+    client = TestClient(worker_main.app)
+    resp = client.get("/v1/jobs")
+    assert resp.status_code == 401
+    resp_ok = client.get("/v1/jobs", headers={"Authorization": "Bearer secret"})
+    assert resp_ok.status_code == 200
+    body = resp_ok.json()
+    assert body["jobs"] == []
+    assert body["queue"]["max_concurrent"] >= 1
