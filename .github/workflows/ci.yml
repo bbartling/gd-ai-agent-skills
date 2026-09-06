@@ -20,7 +20,7 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt pytest ruff
       - run: ruff check app tests
-      - run: pytest -q
+      - run: PYTHONPATH=. pytest -q
 
   container:
     runs-on: ubuntu-24.04
